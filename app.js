@@ -1,9 +1,7 @@
 var fs = require("fs")
-var express = require("express")
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27017/";
 
-var app = express()
 var rawData1 = fs.readFileSync("jsonData/export_prisoner.json")
 var rawData2 = fs.readFileSync("jsonData/export_prisoner_address.json")
 var rawData3 = fs.readFileSync("jsonData/export_sentence.json")
@@ -90,13 +88,3 @@ MongoClient.connect(url, { useNewUrlParser: true },function(err, db) {
     db.close();
   });
 });
-
-app.get("/",function(req,res){
-    res.send(data2)
-})
-
-var server = app.listen(8081,"localhost",function(){
-    var host = server.address().address
-    var port = server.address().port
-    console.log("listening to %s:%s",host,port)
-})
