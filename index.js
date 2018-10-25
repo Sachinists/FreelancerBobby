@@ -1,5 +1,11 @@
 var fs = require("fs")
 var mongoose = require("mongoose")
+const option = {
+	socketTimeoutMS: 30000,
+	keepAlive: true,
+	reconnectTries: 30000,
+	useNewUrlParser: true
+};
 
 var url = "mongodb://localhost:27017/bobby";
 
@@ -31,7 +37,7 @@ var prisoner_address = function (id, pid, add, city, cd) {
 	this.createdate = cd
 }
 
-var sentence = function (pid, id, sno, sc, cd,vbid,obid) {
+var sentence = function (pid, id, sno, sc, cd, vbid, obid) {
 	this.prisoner_id = pid
 	this._id = id
 	this.sentence_number = sno
@@ -59,7 +65,7 @@ data2.items.forEach(element => {
 	prisonerAddressList.push(new prisoner_address(element.prisoner_addres_id, element.prisoner_id, element.address1, element.city, element.createdate))
 });
 data3.items.forEach(element => {
-	sentencesList.push(new sentence(element.prisoner_id, element.sentence_id, element.sentence_number, element.sentence_comments, element.createdate,element.vicitim_blob_id,element.official_blob_id))
+	sentencesList.push(new sentence(element.prisoner_id, element.sentence_id, element.sentence_number, element.sentence_comments, element.createdate, element.vicitim_blob_id, element.official_blob_id))
 });
 data4.items.forEach(element => {
 	xrefList.push(new xref(element.xref_id, element.xref_code, element.xref_desc))
@@ -71,7 +77,7 @@ var Sentences = require("./Models/Sentence")
 var XrefSchema = require("./Models/xref")
 
 console.log("Connecting to database")
-mongoose.connect(url, { useNewUrlParser: true })
+mongoose.connect(url, option)
 var db = mongoose.connection
 db.dropDatabase()
 db.on('error', console.error.bind(console, 'MongoDb Connection Error:'))
@@ -79,6 +85,13 @@ db.once('open', function () {
 	var promiseAddress
 	var sentencePromise
 	console.log("We are connected")
+	var xrefSchema
+	 xrefList.forEach(element => {
+		xrefSchema = new XrefSchema(element)
+		xrefSchema.save(function (err) {
+			if (err) console.log("ERROR XREF: " + err)
+		})
+	})
 	prisonerList.forEach(element => {
 		prisonerAddressList.forEach(innerelement => {
 			if (innerelement.prisoner_id === element._id) {
@@ -89,6 +102,20 @@ db.once('open', function () {
 		})
 		sentencesList.forEach(innerSenElement => {
 			if (innerSenElement.prisoner_id === element._id) {
+				var vbid = innerSenElement.vicitim_blob_id.pop()
+				var obid = innerSenElement.official_blob_id.pop()
+				var temp = []
+				var otemp = []
+				xrefList.forEach(element => {
+					if (element._id === vbid) temp.push(element)
+					if (element._id === obid) otemp.push(element)
+				})
+				temp.forEach(e =>{
+					innerSenElement.vicitim_blob_id.push(new XrefSchema(e))
+				})
+				otemp.forEach(e =>{
+					innerSenElement.official_blob_id.push(new XrefSchema(e))
+				})
 				var sentence = new Sentences(innerSenElement)
 				sentencePromise = sentence.save()
 				element.sentence.push(sentence)
@@ -105,7 +132,7 @@ db.once('open', function () {
 						console.log("One document succesfully inserted")
 					}
 				})
-			}).catch(function(err){
+			}).catch(function (err) {
 				console.log("ERROR PROMISE SENTENCE: " + err)
 			})
 		}).catch(function (err) {

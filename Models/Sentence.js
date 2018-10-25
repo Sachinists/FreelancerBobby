@@ -6,10 +6,9 @@ var schema = new Schema({
     _id : {type : Number, required : true, validate: validators.isNumeric()},
     sentence_number : {type : String},
     sentence_comments : {type : String},
-    createdate : {type : String, validate : validators.isDate(),
-    vicitim_blob_id : { type : Array , "default" : [] },
-    official_blob_id : { type : Array , "default" : [] }
-   }
+    createdate : {type : String, validate : validators.isDate()},
+    vicitim_blob_id : { type :  Array },
+    official_blob_id : { type : Array }
 })
 
 module.exports = mongoose.model("Sentence",schema);    
