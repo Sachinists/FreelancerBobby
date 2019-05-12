@@ -1,0 +1,33 @@
+<div *ngIf="!show">
+  <div class="a">
+    <table class="table table-bordered table-striped table-hover">
+      <thead>
+        <tr>
+          <th style="width: 15%">Serial Number</th>
+          <th>Date of Feedback</th>
+          <th>Comments Given</th>
+          <th>Rating</th>
+          <th>Given By</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of allFeed | paginate: { itemsPerPage: 10, currentPage: p };index as i">
+          <td style="width: 15%">{{i+1}}</td>
+          <td>{{item.dateOfFeedback}}</td>
+          <td>{{item.comments}}</td>
+          <td>{{item.feedback}}</td>
+          <td>{{item.givenBy}}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="showPage">
+      <pagination-controls (pageChange)="p = $event"></pagination-controls>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="show" class="b">
+  <div class="alert alert-primary">
+    <strong>Sorry!</strong> It seems that someone deleted all feedback records.
+  </div>
+</div>
